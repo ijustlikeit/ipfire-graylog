@@ -1,0 +1,1194 @@
+{
+  "v": 1,
+  "id": "92aec92d-6c2c-4aff-be84-a7bce962e5c6",
+  "rev": 1,
+  "name": "IPfire setup ",
+  "summary": "IPfire setup for Home assistant web hook usage",
+  "description": "",
+  "vendor": "IPfire setup",
+  "url": "",
+  "parameters": [],
+  "entities": [
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "4dd5ab8e-169e-48d8-bdf3-7f640a56a379",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "Abuse ransomware"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Abuse ransomware"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "Rule \"Abuse ransomware\"\nwhen\n    true\nthen\n    let intel = abusech_ransom_lookup_ip(to_string($message.SRC_IP));\n    set_field(\"request_ip_is_ransomware\", intel.threat_indicated);\nend    "
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline",
+        "version": "1"
+      },
+      "id": "cfe60ac3-f7c3-4f23-ba8f-3a679fe9a02a",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "Threats and whois check"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Check IP's against spamhaus and do whois"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "pipeline \"Threats and whois check\"\nstage 0 match all\nrule \"Threat Intell by lookup\"\nstage 1 match all\nrule \"Abuse ransomware\"\nstage 2 match all\nrule \"Spamhaus\"\nstage 3 match all\nrule \"inflate threat intel results\"\nstage 4 match either\nrule \"who is lookup\"\nstage 5 match all\nrule \"OTX\"\nstage 6 match all\nrule \"set threat names to none if not found\"\nend"
+        },
+        "connected_streams": [
+          {
+            "@type": "string",
+            "@value": "93464483-06cc-4674-a12d-12f9fed635a1"
+          }
+        ]
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "input",
+        "version": "1"
+      },
+      "id": "e4ea5fde-1c03-41e1-80a1-fe1914447683",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "Ipfire"
+        },
+        "configuration": {
+          "expand_structured_data": {
+            "@type": "boolean",
+            "@value": false
+          },
+          "recv_buffer_size": {
+            "@type": "integer",
+            "@value": 262144
+          },
+          "port": {
+            "@type": "integer",
+            "@value": 514
+          },
+          "number_worker_threads": {
+            "@type": "integer",
+            "@value": 4
+          },
+          "force_rdns": {
+            "@type": "boolean",
+            "@value": false
+          },
+          "allow_override_date": {
+            "@type": "boolean",
+            "@value": true
+          },
+          "bind_address": {
+            "@type": "string",
+            "@value": "0.0.0.0"
+          },
+          "store_full_message": {
+            "@type": "boolean",
+            "@value": false
+          }
+        },
+        "static_fields": {},
+        "type": {
+          "@type": "string",
+          "@value": "org.graylog2.inputs.syslog.udp.SyslogUDPInput"
+        },
+        "global": {
+          "@type": "boolean",
+          "@value": false
+        },
+        "extractors": [
+          {
+            "target_field": {
+              "@type": "string",
+              "@value": "Renewed_IP_address"
+            },
+            "condition_value": {
+              "@type": "string",
+              "@value": ""
+            },
+            "order": {
+              "@type": "integer",
+              "@value": 0
+            },
+            "converters": [],
+            "configuration": {
+              "index": {
+                "@type": "integer",
+                "@value": 2
+              },
+              "split_by": {
+                "@type": "string",
+                "@value": "claims"
+              }
+            },
+            "source_field": {
+              "@type": "string",
+              "@value": "message"
+            },
+            "title": {
+              "@type": "string",
+              "@value": "Renewed IP Address"
+            },
+            "type": {
+              "@type": "string",
+              "@value": "SPLIT_AND_INDEX"
+            },
+            "cursor_strategy": {
+              "@type": "string",
+              "@value": "COPY"
+            },
+            "condition_type": {
+              "@type": "string",
+              "@value": "NONE"
+            }
+          },
+          {
+            "target_field": {
+              "@type": "string",
+              "@value": ""
+            },
+            "condition_value": {
+              "@type": "string",
+              "@value": ""
+            },
+            "order": {
+              "@type": "integer",
+              "@value": 0
+            },
+            "converters": [],
+            "configuration": {
+              "grok_pattern": {
+                "@type": "string",
+                "@value": "%{IPV4}"
+              }
+            },
+            "source_field": {
+              "@type": "string",
+              "@value": "message"
+            },
+            "title": {
+              "@type": "string",
+              "@value": "source_ip_addr"
+            },
+            "type": {
+              "@type": "string",
+              "@value": "GROK"
+            },
+            "cursor_strategy": {
+              "@type": "string",
+              "@value": "COPY"
+            },
+            "condition_type": {
+              "@type": "string",
+              "@value": "NONE"
+            }
+          },
+          {
+            "target_field": {
+              "@type": "string",
+              "@value": "Type"
+            },
+            "condition_value": {
+              "@type": "string",
+              "@value": ""
+            },
+            "order": {
+              "@type": "integer",
+              "@value": 0
+            },
+            "converters": [],
+            "configuration": {
+              "regex_value": {
+                "@type": "string",
+                "@value": "^.*\\).\\[(.+)\\].\\[.*$"
+              }
+            },
+            "source_field": {
+              "@type": "string",
+              "@value": "message"
+            },
+            "title": {
+              "@type": "string",
+              "@value": "Suricata Type"
+            },
+            "type": {
+              "@type": "string",
+              "@value": "REGEX"
+            },
+            "cursor_strategy": {
+              "@type": "string",
+              "@value": "COPY"
+            },
+            "condition_type": {
+              "@type": "string",
+              "@value": "NONE"
+            }
+          },
+          {
+            "target_field": {
+              "@type": "string",
+              "@value": "IP_info"
+            },
+            "condition_value": {
+              "@type": "string",
+              "@value": ""
+            },
+            "order": {
+              "@type": "integer",
+              "@value": 0
+            },
+            "converters": [],
+            "configuration": {
+              "regex_value": {
+                "@type": "string",
+                "@value": "^.*\\} (.+).*$"
+              }
+            },
+            "source_field": {
+              "@type": "string",
+              "@value": "message"
+            },
+            "title": {
+              "@type": "string",
+              "@value": "IP port info"
+            },
+            "type": {
+              "@type": "string",
+              "@value": "REGEX"
+            },
+            "cursor_strategy": {
+              "@type": "string",
+              "@value": "COPY"
+            },
+            "condition_type": {
+              "@type": "string",
+              "@value": "NONE"
+            }
+          },
+          {
+            "target_field": {
+              "@type": "string",
+              "@value": "Protocol"
+            },
+            "condition_value": {
+              "@type": "string",
+              "@value": ""
+            },
+            "order": {
+              "@type": "integer",
+              "@value": 0
+            },
+            "converters": [],
+            "configuration": {
+              "regex_value": {
+                "@type": "string",
+                "@value": "^.*\\{(.+)\\}.*$"
+              }
+            },
+            "source_field": {
+              "@type": "string",
+              "@value": "message"
+            },
+            "title": {
+              "@type": "string",
+              "@value": "Protocol"
+            },
+            "type": {
+              "@type": "string",
+              "@value": "REGEX"
+            },
+            "cursor_strategy": {
+              "@type": "string",
+              "@value": "COPY"
+            },
+            "condition_type": {
+              "@type": "string",
+              "@value": "NONE"
+            }
+          },
+          {
+            "target_field": {
+              "@type": "string",
+              "@value": "SRC_IP"
+            },
+            "condition_value": {
+              "@type": "string",
+              "@value": ""
+            },
+            "order": {
+              "@type": "integer",
+              "@value": 0
+            },
+            "converters": [],
+            "configuration": {
+              "regex_value": {
+                "@type": "string",
+                "@value": "^.*SRC=(.+)DST.*$"
+              }
+            },
+            "source_field": {
+              "@type": "string",
+              "@value": "message"
+            },
+            "title": {
+              "@type": "string",
+              "@value": "source ip"
+            },
+            "type": {
+              "@type": "string",
+              "@value": "REGEX"
+            },
+            "cursor_strategy": {
+              "@type": "string",
+              "@value": "COPY"
+            },
+            "condition_type": {
+              "@type": "string",
+              "@value": "NONE"
+            }
+          },
+          {
+            "target_field": {
+              "@type": "string",
+              "@value": "dst_port"
+            },
+            "condition_value": {
+              "@type": "string",
+              "@value": ""
+            },
+            "order": {
+              "@type": "integer",
+              "@value": 0
+            },
+            "converters": [],
+            "configuration": {
+              "regex_value": {
+                "@type": "string",
+                "@value": "^.*DPT=(.+)(WIN|LEN).*$"
+              }
+            },
+            "source_field": {
+              "@type": "string",
+              "@value": "message"
+            },
+            "title": {
+              "@type": "string",
+              "@value": "destination port"
+            },
+            "type": {
+              "@type": "string",
+              "@value": "REGEX"
+            },
+            "cursor_strategy": {
+              "@type": "string",
+              "@value": "COPY"
+            },
+            "condition_type": {
+              "@type": "string",
+              "@value": "NONE"
+            }
+          },
+          {
+            "target_field": {
+              "@type": "string",
+              "@value": "suricata_event"
+            },
+            "condition_value": {
+              "@type": "string",
+              "@value": ""
+            },
+            "order": {
+              "@type": "integer",
+              "@value": 0
+            },
+            "converters": [],
+            "configuration": {
+              "regex_value": {
+                "@type": "string",
+                "@value": "^.*\\d\\] (.+).\\[Class.*$"
+              }
+            },
+            "source_field": {
+              "@type": "string",
+              "@value": "message"
+            },
+            "title": {
+              "@type": "string",
+              "@value": "Suricata Event"
+            },
+            "type": {
+              "@type": "string",
+              "@value": "REGEX"
+            },
+            "cursor_strategy": {
+              "@type": "string",
+              "@value": "COPY"
+            },
+            "condition_type": {
+              "@type": "string",
+              "@value": "NONE"
+            }
+          },
+          {
+            "target_field": {
+              "@type": "string",
+              "@value": "Class"
+            },
+            "condition_value": {
+              "@type": "string",
+              "@value": ""
+            },
+            "order": {
+              "@type": "integer",
+              "@value": 0
+            },
+            "converters": [],
+            "configuration": {
+              "regex_value": {
+                "@type": "string",
+                "@value": "^.*\\d\\].*\\[(.+)\\].\\[P.*$"
+              }
+            },
+            "source_field": {
+              "@type": "string",
+              "@value": "message"
+            },
+            "title": {
+              "@type": "string",
+              "@value": "Class"
+            },
+            "type": {
+              "@type": "string",
+              "@value": "REGEX"
+            },
+            "cursor_strategy": {
+              "@type": "string",
+              "@value": "COPY"
+            },
+            "condition_type": {
+              "@type": "string",
+              "@value": "NONE"
+            }
+          }
+        ]
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "2c488ad5-41e7-4648-a4a6-2a2b403d86e5",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "who is lookup"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Whois lookup"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "Rule \"who is lookup\"\nwhen\n    true\nthen    \n    let whois_intel = whois_lookup_ip(to_string($message.SRC_IP), \"src_addr\");\nset_fields(whois_intel);\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "a67e9d28-9ce0-4fb9-815d-5756babc8a7c",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "Threat Intell by lookup"
+        },
+        "description": {
+          "@type": "string",
+          "@value": ""
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"Threat Intell by lookup\"\n\nwhen true\n\nthen\n\nlet src_addr_intel = threat_intel_lookup_ip(to_string($message.SRC_IP), \"src_addr\");\nset_fields(src_addr_intel);\n\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "notification",
+        "version": "1"
+      },
+      "id": "c3eb254f-45b0-44e7-bcba-788900315be2",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "Suricata Event"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Send info to HA about event."
+        },
+        "config": {
+          "type": "http-notification-v1",
+          "url": {
+            "@type": "string",
+            "@value": "http://192.0.0.0:0000/api/webhook/suricata-event"
+          }
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "stream",
+        "version": "1"
+      },
+      "id": "93464483-06cc-4674-a12d-12f9fed635a1",
+      "data": {
+        "alarm_callbacks": [],
+        "outputs": [],
+        "remove_matches": {
+          "@type": "boolean",
+          "@value": true
+        },
+        "title": {
+          "@type": "string",
+          "@value": "Ipfire firewall logs"
+        },
+        "stream_rules": [
+          {
+            "type": {
+              "@type": "string",
+              "@value": "CONTAINS"
+            },
+            "field": {
+              "@type": "string",
+              "@value": "message"
+            },
+            "value": {
+              "@type": "string",
+              "@value": "kernel: DROP_INPUT"
+            },
+            "inverted": {
+              "@type": "boolean",
+              "@value": false
+            },
+            "description": {
+              "@type": "string",
+              "@value": ""
+            }
+          },
+          {
+            "type": {
+              "@type": "string",
+              "@value": "CONTAINS"
+            },
+            "field": {
+              "@type": "string",
+              "@value": "message"
+            },
+            "value": {
+              "@type": "string",
+              "@value": "DPT="
+            },
+            "inverted": {
+              "@type": "boolean",
+              "@value": false
+            },
+            "description": {
+              "@type": "string",
+              "@value": "Result: message must contain DPT="
+            }
+          }
+        ],
+        "alert_conditions": [],
+        "matching_type": {
+          "@type": "string",
+          "@value": "AND"
+        },
+        "disabled": {
+          "@type": "boolean",
+          "@value": false
+        },
+        "description": {
+          "@type": "string",
+          "@value": "redo drop logs"
+        },
+        "default_stream": {
+          "@type": "boolean",
+          "@value": false
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "notification",
+        "version": "1"
+      },
+      "id": "3e7ab56a-4f6e-4304-9a38-095e3bf25725",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "Threat detected"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "A threat was detected by the intelligence monitoring rules."
+        },
+        "config": {
+          "type": "http-notification-v1",
+          "url": {
+            "@type": "string",
+            "@value": "http://192.0.0.0:0000/api/webhook/threat_found"
+          }
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "event_definition",
+        "version": "1"
+      },
+      "id": "585d4d08-ef2e-4040-b11d-0d0b85da3723",
+      "data": {
+        "field_spec": {},
+        "config": {
+          "type": "aggregation-v1",
+          "query": {
+            "@type": "string",
+            "@value": "Drop"
+          },
+          "streams": [
+            "d5818a5a-f7ee-4b67-98a1-85cd73c79f18"
+          ],
+          "group_by": [],
+          "series": [],
+          "conditions": {
+            "expression": null
+          },
+          "search_within_ms": 180000,
+          "execute_every_ms": 180000
+        },
+        "priority": {
+          "@type": "integer",
+          "@value": 2
+        },
+        "notifications": [
+          {
+            "notification_id": {
+              "@type": "string",
+              "@value": "c3eb254f-45b0-44e7-bcba-788900315be2"
+            },
+            "notification_parameters": null
+          }
+        ],
+        "notification_settings": {
+          "grace_period_ms": 0,
+          "backlog_size": 1
+        },
+        "title": {
+          "@type": "string",
+          "@value": "Suricata Event"
+        },
+        "is_scheduled": {
+          "@type": "boolean",
+          "@value": true
+        },
+        "key_spec": [],
+        "storage": [
+          {
+            "type": "persist-to-streams-v1",
+            "streams": [
+              "000000000000000000000002"
+            ]
+          }
+        ],
+        "alert": {
+          "@type": "boolean",
+          "@value": true
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Send info about dropped traffic event to HA"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "event_definition",
+        "version": "1"
+      },
+      "id": "0d6d78df-1998-47d7-9e67-99618a8dbcf6",
+      "data": {
+        "field_spec": {},
+        "config": {
+          "type": "aggregation-v1",
+          "query": {
+            "@type": "string",
+            "@value": "threat_indicated:true"
+          },
+          "streams": [
+            "93464483-06cc-4674-a12d-12f9fed635a1"
+          ],
+          "group_by": [],
+          "series": [],
+          "conditions": {
+            "expression": null
+          },
+          "search_within_ms": 300000,
+          "execute_every_ms": 60000
+        },
+        "priority": {
+          "@type": "integer",
+          "@value": 3
+        },
+        "notifications": [
+          {
+            "notification_id": {
+              "@type": "string",
+              "@value": "3e7ab56a-4f6e-4304-9a38-095e3bf25725"
+            },
+            "notification_parameters": null
+          }
+        ],
+        "notification_settings": {
+          "grace_period_ms": 180000,
+          "backlog_size": 1
+        },
+        "title": {
+          "@type": "string",
+          "@value": "Threat detected "
+        },
+        "is_scheduled": {
+          "@type": "boolean",
+          "@value": true
+        },
+        "key_spec": [],
+        "storage": [
+          {
+            "type": "persist-to-streams-v1",
+            "streams": [
+              "000000000000000000000002"
+            ]
+          }
+        ],
+        "alert": {
+          "@type": "boolean",
+          "@value": true
+        },
+        "description": {
+          "@type": "string",
+          "@value": "A threat was detected via intelligence monitoring"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "27dff3b2-c16e-466d-be7b-c64cc1561c08",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "Spamhaus"
+        },
+        "description": {
+          "@type": "string",
+          "@value": ""
+        },
+        "source": {
+          "@type": "string",
+          "@value": " Rule \"Spamhaus\"\nwhen\n    true\nthen\n    let intel = spamhaus_lookup_ip(to_string($message.src_addr));\n    set_field(\"spam_threat_indicated\", intel.threat_indicated);\nend    "
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "ec971e07-4497-4cf4-9888-6d38f07ed813",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "set threat names to none if not found"
+        },
+        "description": {
+          "@type": "string",
+          "@value": ""
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"set threat names to none if not found\"\n\nwhen\n    NOT has_field(\"threat_names\")\nthen\n    set_field(\"threat_names\",\"none\");\nend    \n    "
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "event_definition",
+        "version": "1"
+      },
+      "id": "83808879-8bd2-46ef-8960-4ce794c9fb1f",
+      "data": {
+        "field_spec": {},
+        "config": {
+          "type": "aggregation-v1",
+          "query": {
+            "@type": "string",
+            "@value": "DROP_INPUT "
+          },
+          "streams": [
+            "93464483-06cc-4674-a12d-12f9fed635a1"
+          ],
+          "group_by": [
+            "IPV4"
+          ],
+          "series": [
+            {
+              "id": "count-IPV4",
+              "function": "count",
+              "field": "IPV4"
+            }
+          ],
+          "conditions": {
+            "expression": {
+              "expr": ">",
+              "left": {
+                "expr": "number-ref",
+                "ref": "count-IPV4"
+              },
+              "right": {
+                "expr": "number",
+                "value": 5
+              }
+            }
+          },
+          "search_within_ms": 1740000,
+          "execute_every_ms": 300000
+        },
+        "priority": {
+          "@type": "integer",
+          "@value": 1
+        },
+        "notifications": [
+          {
+            "notification_id": {
+              "@type": "string",
+              "@value": "47bc2bc6-3cdf-4960-948f-4980f461e7b0"
+            },
+            "notification_parameters": null
+          }
+        ],
+        "notification_settings": {
+          "grace_period_ms": 180000,
+          "backlog_size": 1
+        },
+        "title": {
+          "@type": "string",
+          "@value": "IP port scanning"
+        },
+        "is_scheduled": {
+          "@type": "boolean",
+          "@value": true
+        },
+        "key_spec": [],
+        "storage": [
+          {
+            "type": "persist-to-streams-v1",
+            "streams": [
+              "000000000000000000000002"
+            ]
+          }
+        ],
+        "alert": {
+          "@type": "boolean",
+          "@value": true
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Report ip for excessive port scanning"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "8a86320c-b610-4169-b07f-5e008923c41b",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "OTX"
+        },
+        "description": {
+          "@type": "string",
+          "@value": ""
+        },
+        "source": {
+          "@type": "string",
+          "@value": "Rule \"OTX\"\nwhen\n     true  \nthen \n     let intel = otx_lookup_ip(to_string($message.SRC_IP));\n     set_field(\"threat_indicated\", intel.otx_threat_indicated);\n     set_field(\"threat_ids\", intel.otx_threat_ids);\n     set_field(\"threat_names\", intel.otx_threat_names);\nend     "
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "stream",
+        "version": "1"
+      },
+      "id": "d5818a5a-f7ee-4b67-98a1-85cd73c79f18",
+      "data": {
+        "alarm_callbacks": [],
+        "outputs": [],
+        "remove_matches": {
+          "@type": "boolean",
+          "@value": true
+        },
+        "title": {
+          "@type": "string",
+          "@value": "Suricata Logs"
+        },
+        "stream_rules": [
+          {
+            "type": {
+              "@type": "string",
+              "@value": "CONTAINS"
+            },
+            "field": {
+              "@type": "string",
+              "@value": "source"
+            },
+            "value": {
+              "@type": "string",
+              "@value": "suricata"
+            },
+            "inverted": {
+              "@type": "boolean",
+              "@value": false
+            },
+            "description": {
+              "@type": "string",
+              "@value": "Suricata source msgs"
+            }
+          }
+        ],
+        "alert_conditions": [],
+        "matching_type": {
+          "@type": "string",
+          "@value": "AND"
+        },
+        "disabled": {
+          "@type": "boolean",
+          "@value": false
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Suricata logs"
+        },
+        "default_stream": {
+          "@type": "boolean",
+          "@value": false
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "pipeline_rule",
+        "version": "1"
+      },
+      "id": "d31e73f7-d992-429e-935a-e0ddbb3af6cd",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "inflate threat intel results"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "2nd part"
+        },
+        "source": {
+          "@type": "string",
+          "@value": "rule \"inflate threat intel results\"\nwhen\n  to_bool($message.src_address_threat_indicated) or to_bool($message.spam_threat_indicated) \n                                                 or to_bool($message.request_ip_is_ransomware) or true\nthen\n  set_field(\"threat_indicated\", true);\nend"
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "notification",
+        "version": "1"
+      },
+      "id": "47bc2bc6-3cdf-4960-948f-4980f461e7b0",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "Excessive port scanning"
+        },
+        "description": {
+          "@type": "string",
+          "@value": "Report on excessive port scanning by same source IP"
+        },
+        "config": {
+          "type": "http-notification-v1",
+          "url": {
+            "@type": "string",
+            "@value": "http://192.0.0.0:0000/api/webhook/port_scanner"
+          }
+        }
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "grok_pattern",
+        "version": "1"
+      },
+      "id": "e54f0629-e32f-41f4-9b37-3689af515682",
+      "data": {
+        "name": "IPV4",
+        "pattern": "(?<![0-9])(?:(?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5]))(?![0-9])"
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=4.2.6+0210617"
+        }
+      ]
+    }
+  ]
+}

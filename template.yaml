@@ -1,0 +1,89 @@
+# Suricata IPS sensor
+
+  - trigger:
+      - platform: webhook
+        webhook_id: suricata-event
+    sensor:
+      - name: ips_event
+        state: "{{ trigger.json.event.alert }}"
+        attributes: 
+           ips_event_name: >-
+              {{trigger.json.backlog[0].fields.suricata_event}}
+              
+           ips_event_type:  >-
+              {{trigger.json.backlog[0].fields.Class}}                   
+
+           ips_protocol: >-
+              {{trigger.json.backlog[0].fields.Protocol}}
+
+           ips_ip_info:  >-
+              {{trigger.json.backlog[0].fields.IP_info}}
+
+           ips_offending_ip: >-
+              {{trigger.json.backlog[0].fields.IPV4}}
+        
+           ips_timestamp: >-
+              {{trigger.json.event.timestamp}}
+
+# Threat found sensor
+
+  - trigger:
+      - platform: webhook
+        webhook_id: threat_found
+    sensor:
+      - name: threat_detected
+        state: "{{ trigger.json.event.alert }}"
+        attributes: 
+           threat_ip_address: >-
+              {{trigger.json.backlog[0].fields.SRC_IP}}
+
+           threat_dst_port: >-
+              {{trigger.json.backlog[0].fields.dst_port}}
+              
+           threat_organization:  >-
+              {{trigger.json.backlog[0].fields.src_addr_whois_organization}}                   
+
+           threat_country: >-
+              {{trigger.json.backlog[0].fields.src_addr_whois_country_code}}
+
+           threat_spam:  >-
+              {{trigger.json.backlog[0].fields.spam_threat_indicated}}
+
+           threat_ransomware: >-
+              {{trigger.json.backlog[0].fields.request_ip_is_ransomware}}
+              
+           threat_names: >-
+              {{trigger.json.backlog[0].fields.threat_names}}
+              
+           threat_timestamp: >-
+              {{trigger.json.event.timestamp}}
+
+# Port scanning 
+
+  - trigger:
+      - platform: webhook
+        webhook_id: port_scanner
+    sensor:
+      - name: port_scanner_detected
+        state: "{{ trigger.json.event.alert }}"
+        attributes: 
+           scanner_ip_address: >-
+              {{trigger.json.backlog[0].fields.SRC_IP}}
+
+           scanner_extent_desc: >-
+              {{trigger.json.event.message}}
+              
+           scanner_organization:  >-
+              {{trigger.json.backlog[0].fields.src_addr_whois_organization}}                   
+
+           scanner_country: >-
+              {{trigger.json.backlog[0].fields.src_addr_whois_country_code}}
+
+           scanner_threats: >-
+              {{trigger.json.backlog[0].fields.threat_names}}
+              
+           scanner_start_timestamp: >-
+              {{trigger.json.event.timerange_start}}
+
+           scanner_end_timestamp: >-
+              {{trigger.json.event.timerange_end}}

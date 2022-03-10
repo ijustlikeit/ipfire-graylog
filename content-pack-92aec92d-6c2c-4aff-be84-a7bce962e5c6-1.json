@@ -626,7 +626,7 @@
             },
             "value": {
               "@type": "string",
-              "@value": "kernel: DROP_INPUT"
+              "@value": "kernel: DROP_"
             },
             "inverted": {
               "@type": "boolean",
